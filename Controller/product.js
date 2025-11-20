@@ -16,6 +16,10 @@ export const deleteproduct = async (req, res) => {
   try {
     const id = req.params.id;
     const food = await Product.findOne({ id });
+    unlink(`uploads/${food.image}`, (err) => {
+      if (err) throw err;
+      console.log("file was deleted");
+    });
     if (!food) {
       return res.status(400).json({ message: "product delete succesfully" });
     }

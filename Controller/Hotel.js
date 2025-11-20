@@ -30,30 +30,3 @@ export const deletehotel = async (req, res) => {
     res.status(500).json({ message: "internal error " });
   }
 };
-// export const deletehotel = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       return res.status(400).json({ message: "Hotel ID is required" });
-//     }
-
-//     const hotel = await Hotel.findById(id);
-//     if (!hotel) {
-//       return res.status(404).json({ message: "Hotel not found" });
-//     }
-
-//     // Delete image file if exists
-//     if (hotel.image) {
-//       unlink(`uploads/${hotel.image}`, (err) => {
-//         if (err) console.error("Image deletion error:", err);
-//         else console.log("Image file deleted");
-//       });
-//     }
-
-//     await Hotel.findByIdAndDelete(id);
-//     return res.status(200).json({ message: "Hotel deleted successfully" });
-//   } catch (error) {
-//     console.error("Delete error:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
