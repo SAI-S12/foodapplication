@@ -1,0 +1,59 @@
+import restaurent from "../Module/resturents.js";
+
+export const gethotels = async (req, res) => {
+  try {
+    const hotels = await restaurent.find();
+    if (!hotels) {
+      return res.status(401).json({ message: "hotels not there fucker " });
+    }
+    res.status(200).json({ message: "hotels fetched ", hotels });
+  } catch (error) {
+    return res.status(500).json({ message: "internal server fucker" });
+  }
+};
+
+export const deletehotel = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ message: "user not found " });
+    }
+    const list = await restaurent.findById(id);
+    unlink(`uploads/${list.image}`, (err) => {
+      if (err) throw err;
+      console.log("file was deleted");
+    });
+    await restaurent.findByIdAndDelete(id);
+    return res.status(200).json({ json: "hotel delete succesfullly" });
+  } catch (error) {
+    res.status(500).json({ message: "internal error " });
+  }
+};
+// export const deletehotel = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       return res.status(400).json({ message: "Hotel ID is required" });
+//     }
+
+//     const hotel = await Hotel.findById(id);
+//     if (!hotel) {
+//       return res.status(404).json({ message: "Hotel not found" });
+//     }
+
+//     // Delete image file if exists
+//     if (hotel.image) {
+//       unlink(`uploads/${hotel.image}`, (err) => {
+//         if (err) console.error("Image deletion error:", err);
+//         else console.log("Image file deleted");
+//       });
+//     }
+
+//     await Hotel.findByIdAndDelete(id);
+//     return res.status(200).json({ message: "Hotel deleted successfully" });
+//   } catch (error) {
+//     console.error("Delete error:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
