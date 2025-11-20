@@ -1,4 +1,5 @@
 import restaurent from "../Module/resturents.js";
+import { unlink } from "fs";
 
 export const gethotels = async (req, res) => {
   try {
@@ -19,12 +20,12 @@ export const deletehotel = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: "user not found " });
     }
-    const list = await restaurent.findById(id);
+    const list = await restaurent.findById(_id);
     unlink(`uploads/${list.image}`, (err) => {
       if (err) throw err;
       console.log("file was deleted");
     });
-    await restaurent.findByIdAndDelete(id);
+    await restaurent.findByIdAndDelete(_id);
     return res.status(200).json({ json: "hotel delete succesfullly" });
   } catch (error) {
     res.status(500).json({ message: "internal error " });
