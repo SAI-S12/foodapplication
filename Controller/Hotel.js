@@ -17,17 +17,37 @@ export const deletehotel = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // Check if ID exists
     if (!id) {
-      return res.status(400).json({ message: "user not found " });
+      return res.status(400).json({ message: "Hotel ID is required" });
     }
-    const list = await restaurent.findById(_id);
-    unlink(`uploads/${list.image}`, (err) => {
-      if (err) throw err;
-      console.log("file was deleted");
+
+    // Find hotel by ID
+    const hotel = await restaurent.findById(id);
+
+    if (!hotel) {
+      return res.status(404).json({ message: "Hotel not found" });
+    }
+
+    // Delete image safely (if image exists)
+    if (hotel.image) {
+      unlink(`uploads/${hotel.image}`, (err) => {
+        if (err) {
+          console.log("Image delete error:", err);
+        } else {
+          console.log("Hotel image deleted");
+        }
+      });
+    }
+
+    // Delete hotel record
+    await restaurent.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Hotel deleted successfully",
     });
-    await restaurent.findByIdAndDelete(_id);
-    return res.status(200).json({ json: "hotel delete succesfullly" });
   } catch (error) {
-    res.status(500).json({ message: "internal error " });
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

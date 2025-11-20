@@ -13,20 +13,52 @@ export const getproduct = async (req, res) => {
   }
 };
 
+// export const deleteproduct = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const food = await Product.findOne(id);
+//     unlink(`uploads/${food.image}`, (err) => {
+//       if (err) throw err;
+//       console.log("file was deleted");
+//     });
+//     if (!food) {
+//       return res.status(400).json({ message: "product delete succesfully" });
+//     }
+//     await Product.findByIdAndDelete(id);
+//     return res.status(200).json({ message: "datat delete succesfu;lluy" });
+//   } catch (error) {
+//     return res.status(500).json({ message: "internal server error " });
+//   }
+// };
+
 export const deleteproduct = async (req, res) => {
   try {
     const id = req.params.id;
-    const food = await Product.findOne({ _id });
-    unlink(`uploads/${food.image}`, (err) => {
-      if (err) throw err;
-      console.log("file was deleted");
-    });
+
+    // Find product by ID
+    const food = await Product.findById(id);
+
+    // If product not found
     if (!food) {
-      return res.status(400).json({ message: "product delete succesfully" });
+      return res.status(404).json({ message: "Product not found" });
     }
-    await Product.findByIdAndDelete({ _id });
-    return res.status(200).json({ message: "datat delete succesfu;lluy" });
+
+    // Delete image if exists
+    if (food.image) {
+      unlink(`uploads/${food.image}`, (err) => {
+        if (err) console.log("Image delete error:", err);
+        else console.log("Image deleted");
+      });
+    }
+
+    // Delete product from DB
+    await Product.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Product deleted successfully",
+    });
   } catch (error) {
-    return res.status(500).json({ message: "internal server error " });
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
