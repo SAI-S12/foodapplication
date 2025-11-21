@@ -24,11 +24,13 @@ export const register = async (req, res) => {
       password: hashpassword,
     });
     await newuser.save();
-    return res
-      .status(200)
-      .json({ message: "register succesfully madarchod", newuser });
+    return res.status(200).json({
+      success: true,
+      message: "register succesfully madarchod",
+      newuser,
+    });
   } catch (error) {
-    res.status(500).json({ message: "internal server " });
+    res.status(500).json({ success: false, message: "internal server " });
   }
 };
 
@@ -49,11 +51,14 @@ export const login = async (req, res) => {
         .json({ message: "passsword incorrect madarchod " });
     }
     const token = jwt.sign({ id: user._id }, key, { expiresIn: "7d" });
-    return res
-      .status(200)
-      .json({ message: "login succesfull madarchod ", token, user });
+    return res.status(200).json({
+      success: true,
+      message: "login succesfull madarchod ",
+      token,
+      user,
+    });
   } catch (error) {
-    return res.status(500).json({ message: error });
+    return res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -83,7 +88,9 @@ export const deleteuser = async (req, res) => {
       return res.status(400).json({ mess: "user not found " });
     }
     const updatedate = await User.findByIdAndDelete(id);
-    return res.status(200).json({ mess: "data delete  succesfully" });
+    return res
+      .status(200)
+      .json({ success: true, mess: "data delete  succesfully" });
   } catch (error) {
     return res.status(401).json({ mess: "error" });
   }
