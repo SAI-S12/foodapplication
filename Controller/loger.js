@@ -9,8 +9,9 @@ const OTP_EXPIRY_MINUTES = 5;
 
 // Create SMTP Transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER, // Your Gmail / Brevo login email
     pass: process.env.EMAIL_PASS, // Your Brevo SMTP key
@@ -56,7 +57,7 @@ export const sendOTP = async (req, res) => {
 
     // Send email
     await transporter.sendMail({
-      from: process.env.SENDER_EMAI, // MUST MATCH VERIFIED SENDER
+      from: process.env.SENDER_EMAIL, // MUST MATCH VERIFIED SENDER
       to: email,
       subject: "Your OTP Code",
       text: `Hello ${username},\n\nYour OTP code is: ${otp}\nIt will expire in ${OTP_EXPIRY_MINUTES} minutes.\n\nThank you!`,
