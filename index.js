@@ -14,8 +14,8 @@ const port = 3000;
 
 mongoose
   .connect(
-    // "mongodb+srv://sssainath1234:sai1234@cluster0.raf4ecf.mongodb.net/?appName=Cluster0"
-    process.env.mongodb
+    "mongodb+srv://sssainath1234:sai1234@cluster0.raf4ecf.mongodb.net/?appName=Cluster0"
+    // process.env.mongodb
   )
   .then(() => {
     console.log("connected madarchod");
