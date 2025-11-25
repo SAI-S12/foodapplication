@@ -1,32 +1,70 @@
 import express from "express";
 import mongoose from "mongoose";
-import path from "path";
 import restaurent from "../Module/resturents.js";
 import { deletehotel, gethotels } from "../Controller/Hotel.js";
 import multer from "multer";
-const routerr = express.Router();
+// <-- import Cloudinary
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
 
-const dsstorage = multer.diskStorage({
-  destination: "uploads",
-  filename: (req, file, cb) => {
-    return cb(
-      null,
-      file.fieldname + "_" + Date.now() + "_" + path.extname(file.originalname)
-    );
-  },
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const upload = multer({ storage: dsstorage }).single("image");
+const routerr = express.Router();
+
+// Upload file to memory (not disk)
+const upload = multer({ storage: multer.memoryStorage() }).single("image");
 
 routerr.post("/add-hotel", upload, async (req, res) => {
   try {
     const { vendor, name, rating, location, description, region, offer } =
       req.body;
+
     if (!mongoose.Types.ObjectId.isValid(vendor)) {
       return res.status(400).json({ error: "Invalid vendor ID" });
     }
-    const image = req.file ? req.file.filename : null;
 
+    // Upload image to Cloudinary
+    let imageUrl = null;
+    if (req.file) {
+      const cloudinaryRes = await cloudinary.uploader.upload_stream(
+        { folder: "hotels" },
+        (error, result) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Upload failed" });
+          }
+          imageUrl = result.secure_url;
+
+          const hotel = new restaurent({
+            vendor,
+            name,
+            rating,
+            location,
+            region,
+            description,
+            image: imageUrl,
+            offer,
+          });
+
+          hotel.save();
+          return res.status(201).json({
+            message: "Hotel added successfully",
+            hotel,
+          });
+        }
+      );
+
+      cloudinaryRes.end(req.file.buffer);
+      return; // Stop further execution
+    }
+
+    // If no image
     const hotel = new restaurent({
       vendor,
       name,
@@ -34,12 +72,13 @@ routerr.post("/add-hotel", upload, async (req, res) => {
       location,
       region,
       description,
-      image,
+      image: null,
       offer,
     });
+
     await hotel.save();
 
-    return res.status(201).json({ message: "hotel add succesfully", hotel });
+    return res.status(201).json({ message: "hotel added successfully", hotel });
   } catch (err) {
     console.error("Error in /add-hotel:", err);
     res.status(500).json({ error: err.message });
