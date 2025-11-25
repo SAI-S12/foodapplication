@@ -1,45 +1,90 @@
 import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
-import path from "path";
 import Product from "../Module/product.js";
 import { deleteproduct, getproduct } from "../Controller/product.js";
+// import cloudinary from "../cloudinary.js"; // <-- Add this
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
 
-const routerrr = express.Router();
-const dsstorage = multer.diskStorage({
-  destination: "uploads",
-  filename: (req, file, cb) => {
-    return cb(
-      null,
-      file.fieldname + "_" + Date.now() + "_" + path.extname(file.originalname)
-    );
-  },
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const upload = multer({ storage: dsstorage }).single("image");
+const routerrr = express.Router();
+
+// Use memory storage for Cloudinary
+const upload = multer({ storage: multer.memoryStorage() }).single("image");
 
 routerrr.post("/food/:id", upload, async (req, res) => {
   const id = req.params.id;
+
   try {
     const { name, price, category, description } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "Invalid hotel ID" });
     }
 
+    let imageUrl = null;
+
+    // Upload to Cloudinary (if image exists)
+    if (req.file) {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "products" },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error);
+            return res.status(500).json({ error: "Image upload failed" });
+          }
+
+          imageUrl = result.secure_url; // CLOUDINARY URL
+
+          // Save product AFTER Cloudinary upload
+          const newproduct = new Product({
+            hotel: id,
+            name,
+            price,
+            category,
+            description,
+            image: imageUrl, // Save Cloudinary URL
+          });
+
+          newproduct.save();
+
+          return res
+            .status(201)
+            .json({ message: "Product added successfully", newproduct });
+        }
+      );
+
+      // Send the file buffer to Cloudinary
+      uploadStream.end(req.file.buffer);
+      return; // prevent further execution
+    }
+
+    // If no image uploaded
     const newproduct = new Product({
       hotel: id,
       name,
       price,
       category,
       description,
-      image: req.file.filename,
+      image: null,
     });
+
     await newproduct.save();
 
-    return res
-      .status(201)
-      .json({ message: "product add succesfully", newproduct });
+    return res.status(201).json({
+      message: "Product added successfully",
+      newproduct,
+    });
   } catch (err) {
+    console.error("Error in /food route:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
